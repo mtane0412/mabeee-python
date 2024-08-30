@@ -1,12 +1,20 @@
+import time
 from flask import Flask, request, jsonify
 from bluepy import btle
 
 app = Flask(__name__)
 
-def connect(mac_addr):
-    peripheral = btle.Peripheral()
-    peripheral.connect(mac_addr, btle.ADDR_TYPE_RANDOM)
-    return peripheral
+def connect(mac_addr, retries=3, delay=5):
+    for attempt in range(retries):
+        try:
+            peripheral = btle.Peripheral()
+            peripheral.connect(mac_addr, btle.ADDR_TYPE_RANDOM)
+            return peripheral
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(delay)
+            else:
+                raise e
 
 def write_pwm(peripheral, value):
     PWM_HANDLE = 17
